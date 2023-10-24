@@ -14,7 +14,8 @@ load_dotenv()
 ###############
 ## Database connection details ->
 ## I am using https://planetscale.com/ as my database which provides a free Vitess based database which is amazingly fast and resilient
-## Head over to vitess website to create your free database
+## Head over to vitess website to create your free database.
+##alternatively, you can other fav (https://www.cockroachlabs.com/) for a free distributed database.
 
 HOST= 'host_config'
 USERNAME= 'username'
@@ -32,7 +33,7 @@ connection = MySQLdb.connect(
   }
 )
 
-# Create cursor and use it to execute SQL command
+# Create cursor and use it to execute SQL command. This is needed for planetscale db to upload dataframe without failing. Not sure if you need this for other mysql vendors.
 cursor = connection.cursor()
 cursor.execute('SET autocommit = true')
 
@@ -71,4 +72,4 @@ while(1):
         print(f'An error occurred: {e}')
 
 
-    time.sleep(60*5) #sleep for 5 mins
+    time.sleep(60*5) #sleep for 5 mins. Change the frequency of data collection here
