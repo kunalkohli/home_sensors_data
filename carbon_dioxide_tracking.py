@@ -22,20 +22,29 @@ USERNAME= 'username'
 PASSWORD= 'password_config'
 DATABASE= 'name_database'
 
-connection = MySQLdb.connect(
-  host= HOST,
-  user=USERNAME,
-  passwd= PASSWORD,
-  db= DATABASE,
-  ssl_mode = "VERIFY_IDENTITY",
-  ssl      = {
-    "ca": "/etc/ssl/certs/ca-certificates.crt"
-  }
-)
 
-# Create cursor and use it to execute SQL command. This is needed for planetscale db to upload dataframe without failing. Not sure if you need this for other mysql vendors.
-cursor = connection.cursor()
-cursor.execute('SET autocommit = true')
+# Create cursor and use it to execute SQL command
+def connect_to_mysql():
+  connection = MySQLdb.connect(
+    host= HOST,
+    user=USERNAME,
+    passwd= PASSWORD,
+    db= DATABASE,
+    ssl_mode = "VERIFY_IDENTITY",
+    ssl      = {
+      "ca": "/etc/ssl/certs/ca-certificates.crt"
+    }
+  )
+  cursor = connection.cursor()
+  time.sleep(10)
+
+  print('connecting to mysql using cursor')
+  cursor.execute('SET autocommit = true')
+
+  return connection, cursor
+
+
+connection, cursor = connect_to_mysql()
 
 ## Continue running the code forever
 ## Make sure to run the code with sudo command to give serial port access to raspberry pi
@@ -67,6 +76,12 @@ while(1):
 
     except ValueError:
         print('Oops. Wrong data')
+
+    except MySQLdb.OperationalError as e:
+        if e.args[0] == 2006:  # MySQL server has gone away
+            print("Reconnecting to MySQL...")
+            connection, cursor = connect_to_mysql()
+            # Retry your data insertion logic with the new connection
     
     except Exception as e:
         print(f'An error occurred: {e}')
